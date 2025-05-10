@@ -57,7 +57,14 @@ jobs:
           echo "CURRENT_DATE=$(date +%Y%m%d%M)" >> $GITHUB_ENV
           mkdir -p out/atmosphere/contents/00FF747765616BFF/
           cp out/sys-tweak.nsp out/atmosphere/contents/00FF747765616BFF/exefs.nsp
-          echo '{\n  "name": "sys-tweak",\n  "tid": "00FF747765616BFF",\n  "version": "$CURRENT_DATE",\n  "requires_reboot": true\n}' > out/atmosphere/contents/00FF747765616BFF/toolbox.json
+          cat <<EOF > out/atmosphere/contents/00FF747765616BFF/toolbox.json
+          {
+            "name": "sys-tweak",
+            "tid": "00FF747765616BFF",
+            "version": "$CURRENT_DATE",
+            "requires_reboot": true
+          }
+          EOF
           mkdir -p out/atmosphere/contents/00FF747765616BFF/flags
           touch out/atmosphere/contents/00FF747765616BFF/flags/boot2.flag
           cd out && zip -r sys-tweak.zip atmosphere/
