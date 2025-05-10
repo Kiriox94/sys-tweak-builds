@@ -32,41 +32,36 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/sys-tweak-builds/sys-tweak-builds
 
-      - name: deps - libnx
+      - name: Install deps - libnx
         run: |
           git clone https://github.com/switchbrew/libnx.git /tmp/libnx
           make -C /tmp/libnx install -j4
 
-      - name: deps - ams libs
+      - name: Install deps - ams libs
         run: |
           make -C lib/ams/libstratosphere -j4
 
-      - name: build - FEAT_ALL
+      - name: Build sys-tweak with NACP override only
         run: |
           make clean
-          make FEAT_ALL="Y" -j4
+          make FEAT_NSRO_CONTROL="Y" FEAT_NSAM_CONTROL="Y" -j4
 
-      - name: store - FEAT_ALL
-        uses: actions/upload-artifact@v4
-        with:
-          name: sys-tweak.nsp
-          path: out/sys-tweak.nsp
-
-      - name: Get next version code
-        id: next_ver_code
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get commit infos
+        id: commit_info
         run: |
-          TAG=$(gh release list -L 1 | awk -F '\t' '{print $3}')
-          if [ -z "$TAG" ]; then TAG=0; fi
-          echo "NEXT_VER_CODE=$((TAG + 1))" >> $GITHUB_OUTPUT
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "msg<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
       - name: Package sys-tweak.nsp in .zip file
         run: |
           echo "CURRENT_DATE=$(date +%Y%m%d'(%H%M%S)')" >> $GITHUB_ENV
           mkdir -p out/atmosphere/contents/00FF747765616BFF/
           cp out/sys-tweak.nsp out/atmosphere/contents/00FF747765616BFF/exefs.nsp
-          echo '{\n  "name": "sys-tweak",\n  "tid": "00FF747765616BFF",\n  "requires_reboot": true\n}' > out/atmosphere/contents/00FF747765616BFF/toolbox.json
+          echo '{\n  "name": "sys-tweak",\n  "tid": "00FF747765616BFF",\n  "version": "$CURRENT_DATE",\n  "requires_reboot": true\n}' > out/atmosphere/contents/00FF747765616BFF/toolbox.json
           mkdir -p out/atmosphere/contents/00FF747765616BFF/flags
           touch out/atmosphere/contents/00FF747765616BFF/flags/boot2.flag
           cd out && zip -r sys-tweak.zip atmosphere/
@@ -77,7 +72,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
-          body: "Automatically generated from latest [p-sam/switch-sys-tweak](https://github.com/p-sam/switch-sys-tweak/) commit"
-          release_name: Build ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }} - ${{ env.CURRENT_DATE }}
-          file: out/sys-tweak.zip
+          tag: ${{ env.CURRENT_DATE }}
+          body: |
+            **${{ steps.commit_msg.outputs.msg }}**
+            [Commit infos](https://github.com/p-sam/switch-sys-tweak/commit/${{ steps.commit_info.outputs.sha }})
+            
+            *Automatically generated from latest [p-sam/switch-sys-tweak](https://github.com/p-sam/switch-sys-tweak/) commit*
+          release_name: Release ${{ env.CURRENT_DATE }}
+          file: |
+            out/sys-tweak.zip,
+            out/sys-tweak.nsp
