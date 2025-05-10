@@ -51,9 +51,7 @@ jobs:
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
           COMMIT_SHA=$(git rev-parse HEAD)
-          echo "msg<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMIT_MSG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
           echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
       - name: Package sys-tweak.nsp in .zip file
@@ -79,6 +77,7 @@ jobs:
             
             *Automatically generated from latest [p-sam/switch-sys-tweak](https://github.com/p-sam/switch-sys-tweak/) commit*
           release_name: Release ${{ env.CURRENT_DATE }}
+          file_glob: true
           file: |
             out/sys-tweak.zip,
             out/sys-tweak.nsp
