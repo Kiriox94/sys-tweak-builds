@@ -52,23 +52,6 @@ jobs:
           COMMIT_SHA=$(git rev-parse HEAD)
           echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
-      - name: Package sys-tweak.nsp in .zip file
-        run: |
-          echo "CURRENT_DATE=$(date +%Y%m%d%M)" >> $GITHUB_ENV
-          mkdir -p out/atmosphere/contents/00FF747765616BFF/
-          cp out/sys-tweak.nsp out/atmosphere/contents/00FF747765616BFF/exefs.nsp
-          cat <<EOF > out/atmosphere/contents/00FF747765616BFF/toolbox.json
-          {
-            "name": "sys-tweak",
-            "tid": "00FF747765616BFF",
-            "version": "$CURRENT_DATE",
-            "requires_reboot": true
-          }
-          EOF
-          mkdir -p out/atmosphere/contents/00FF747765616BFF/flags
-          touch out/atmosphere/contents/00FF747765616BFF/flags/boot2.flag
-          cd out && zip -r sys-tweak.zip atmosphere/
-
       - name: Create Release and Upload files
         uses: svenstaro/upload-release-action@v2
         env:
