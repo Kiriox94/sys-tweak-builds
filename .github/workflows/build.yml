@@ -46,9 +46,10 @@ jobs:
           make clean
           make FEAT_NSRO_CONTROL="Y" FEAT_NSAM_CONTROL="Y" -j4
 
-      - name: Get commit infos
+      - name: Set env variables
         id: commit_info
         run: |
+          echo "CURRENT_DATE=$(date +%Y%m%d%M)" >> $GITHUB_ENV
           COMMIT_SHA=$(git rev-parse HEAD)
           echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
